@@ -8,13 +8,13 @@ services:
     image: api:v1
     container_name: api
   
-  brocker:
+  broker:
     build:
-      context: ./brocker
+      context: ./broker
       dockerfile: Dockerfile
     ports: 
       - 1883:1883
-    image: brocker:v1
+    image: broker:v1
     container_name: broker
   
   database:
