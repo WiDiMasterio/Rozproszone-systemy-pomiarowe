@@ -42,7 +42,7 @@ message = {
 
 ### Payload error message
 Pola wymagane
-- "ts_ms": int (w ms)
+- "ts_ms": long long (w ms)
 - "errorSource": String - informacja, skąd pochodzi błąd
 - "errorMSG": String - główna treść błędu
 - "errorIdx": int - indeks errora
@@ -51,3 +51,29 @@ Pola wymagane
 * Sprawdzeniu indeksu wiadomości, co pozwala sprawdzić czy nie stracono żadnych wiadomości w trakcie transmisji
 
 * Niezgodność formatu dla danej wiadomości, gdy dana wiadomość nie ma kompletu wymaganych pól, wiadomość jest uznawana za błędną
+
+## Błędna wiadomość
+- Brak nazwy urządzenia:
+```
+message = {
+    "ts_ms": 32143,
+    "description": "distance",
+    "value": 23.45,
+    "unit": "cm",
+    "msgIdx": 4,
+    "UUIDv4": "35589507-be86-4a21-a68c-c5fcc1d3a436"
+}
+```
+
+- Zły format value
+```
+message = {
+    "ts_ms": 32143,
+    "device_name": "espSalon",
+    "description": "distance",
+    "value": 2.34.5,
+    "unit": "cm",
+    "msgIdx": 4,
+    "UUIDv4": "35589507-be86-4a21-a68c-c5fcc1d3a436"
+}
+```
