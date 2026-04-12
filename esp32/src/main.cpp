@@ -124,7 +124,7 @@ void publishSensorMeasurement(struct messages &msg)
   message["device_name"] = msg.device_name;
   message["description"] = msg.description;
   message["value"] = msg.value;
-  message["sensor"] = msg.device_name;
+  // message["sensor"] = msg.device_name;
   message["unit"] = msg.unit;
   message["msgIdx"] = msg.msgIdx;
 

@@ -1,39 +1,15 @@
 import json
 import paho.mqtt.client as mqtt
-import psycopg2
+import db 
 import secrets as sec
 
 MQTT_HOST = sec.MQTT_HOST
 MQTT_PORT = sec.MQTT_PORT
 MQTT_TOPIC = sec.MQTT_TOPIC
-DB_HOST = sec.DB_HOST
-DB_NAME = sec.DB_NAME
-DB_USER = sec.DB_USER
-DB_PASSWORD = sec.DB_PASSWORD
 
 def save_measurement(topic, data):
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD
-    )
+    conn = db.get_connection()
     cur = conn.cursor()
-    # cur.execute("""
-    #     INSERT INTO measurements
-    #     (group_id, device_id, sensor, value, unit, ts_ms, seq, topic)
-    #     VALUES (%s, %s, %s, %s, %s, %s, %s)
-    # """, (
-    #     data.get("group_id"),
-    #     data["device_id"],
-    #     data["sensor"],
-    #     data["value"],
-    #     data.get("unit"),
-    #     data["ts_ms"],
-    #     data.get("seq"),
-    #     topic
-    # ))
-
     cur.execute("""
         INSERT INTO measurements
         (ts_ms, device_name, description, value, unit, msgIdx, uuid, topic)
