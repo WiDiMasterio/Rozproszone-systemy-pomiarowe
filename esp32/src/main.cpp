@@ -117,13 +117,16 @@ void publishSensorMeasurement(struct messages &msg)
   topic = "lab/" + String(MQTT_GROUP) + "/" + deviceId + "/sensors/" + msg.description;
   String unit = msg.unit;
   String description = msg.description;
-
+  msg.msgIdx += 1;
+  msg.value = (temprature_sens_read() - 32) / 1.8;
+  
   message["ts_ms"] = getTimeStampMs();
   message["device_name"] = msg.device_name;
   message["description"] = msg.description;
   message["value"] = msg.value;
   message["sensor"] = msg.device_name;
   message["unit"] = msg.unit;
+  message["msgIdx"] = msg.msgIdx;
 
   char payload[256];
   serializeJson(message, payload);
@@ -162,7 +165,7 @@ void loop()
   Serial.print("Temperature: ");
   
   // Convert raw temperature in F to Celsius degrees
-  Serial.print((temprature_sens_read() - 32) / 1.8);
+  Serial.print(tempSensorESP32.value);
   Serial.println(" C");
   delay(5000);
 }
