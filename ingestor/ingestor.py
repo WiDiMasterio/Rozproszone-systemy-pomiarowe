@@ -19,26 +19,42 @@ def save_measurement(topic, data):
         password=DB_PASSWORD
     )
     cur = conn.cursor()
+    # cur.execute("""
+    #     INSERT INTO measurements
+    #     (group_id, device_id, sensor, value, unit, ts_ms, seq, topic)
+    #     VALUES (%s, %s, %s, %s, %s, %s, %s)
+    # """, (
+    #     data.get("group_id"),
+    #     data["device_id"],
+    #     data["sensor"],
+    #     data["value"],
+    #     data.get("unit"),
+    #     data["ts_ms"],
+    #     data.get("seq"),
+    #     topic
+    # ))
+
     cur.execute("""
         INSERT INTO measurements
-        (group_id, device_id, sensor, value, unit, ts_ms, seq, topic)
+        (ts_ms, device_name, description, value, unit, msgIdx, uuid, topic)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """, (
-        data.get("group_id"),
-        data["device_id"],
-        data["sensor"],
-        data["value"],
-        data.get("unit"),
         data["ts_ms"],
-        data.get("seq"),
+        data["device_name"],
+        data["description"],
+        data["value"],
+        data["unit"],
+        data["msgIdx"],
+        data.get("uuid"),
         topic
     ))
+    
     conn.commit()
     cur.close()
     conn.close()
 
 def is_valid(data):
-    required = ["device_id", "sensor", "value", "ts_ms"]
+    required = ["ts_ms", "device_name", "description", "value", "unit", "msgIdx"]
     return all(field in data for field in required)
 
 def on_connect(client, userdata, flags, rc):

@@ -25,6 +25,7 @@ Pola wymagane
 - msgIdx : int - indeks wiadomości
 
 Pola opcjonalne
+- topic: string - adres topicu
 - UUIDv4: String - UUID urządzenia
 
 Przykładowy payload:
