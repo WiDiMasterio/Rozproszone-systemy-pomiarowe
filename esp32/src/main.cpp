@@ -27,7 +27,7 @@ uint8_t temprature_sens_read();
 
 void syncTime()
 {
-  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  configTime(3600, 3600, "pool.ntp.org", "time.nist.gov");
   while (!getLocalTime(&timeinfo))
   {
     Serial.println("Oczekiwanie na synchronizacje czasu...");
