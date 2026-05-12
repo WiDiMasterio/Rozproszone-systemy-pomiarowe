@@ -3,6 +3,9 @@ import paho.mqtt.client as mqtt
 import db 
 import secrets as sec
 
+# wbita do bazy danych:
+# docker exec -it postgres psql -U admin -d abcd_db
+
 MQTT_HOST = sec.MQTT_HOST
 MQTT_PORT = sec.MQTT_PORT
 MQTT_TOPIC = sec.MQTT_TOPIC

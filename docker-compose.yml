@@ -24,6 +24,8 @@ services:
     ports:
       - 5432:5432
     image: database:v1
+    volumes:
+      - db_data:/var/lib/postgresql/18/docker
     container_name: postgres
   
   ingestor:
@@ -31,6 +33,10 @@ services:
         context: ./ingestor
         dockerfile: Dockerfile
       container_name: ingestor
+      image: ingestor:v1
       depends_on:
         - broker
         - database
+
+volumes:
+  db_data:

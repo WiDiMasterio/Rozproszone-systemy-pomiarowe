@@ -146,7 +146,7 @@ void setup()
   Serial.print("Device ID: ");
   Serial.println(deviceId);
   connectWiFi();
-  syncTime();
+  //syncTime();
   connectMQTT();
 }
 void loop()
