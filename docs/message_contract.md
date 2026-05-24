@@ -1,6 +1,6 @@
 # Struktura kontraktu
 
-#Konrtakt MQTT V1
+#Kontrakt MQTT V1
 ## Topic
 Topic składa się z następujących członów
  - standardowy prefix - lab/g03
