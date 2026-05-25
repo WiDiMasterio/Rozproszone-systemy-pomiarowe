@@ -2,32 +2,22 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Pomiarowy IoT</title>
+    <title>System Pomiarowy IoT</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f7f6; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; text-align: center; }
-        .btn { background: #007BFF; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin-top: 15px; }
-        .btn:hover { background: #0056b3; }
-        .measurement { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 5px; font-size: 18px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .welcome-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; }
+        .btn-enter { background: #007BFF; color: white; text-decoration: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; display: inline-block; }
+        .btn-enter:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>System Rozproszonych Pomiarów</h2>
-        <p>Kliknij poniższy przycisk, aby pobrać najnowszy rekord z bazy danych.</p>
-        
-        <a href="/measurements/last" class="btn">Get Last Measurement</a>
-
-        {% if measurement %}
-            <div class="measurement">
-                <strong>Ostatni pomiar:</strong><br>
-                Urządzenie: {{ measurement.device_name }}<br>
-                Wartość: {{ measurement.value }} {{ measurement.unit }}<br>
-                Czas: {{ measurement.ts_ms }}
-            </div>
-            <a href="/" class="btn" style="background:#6c757d;">Powrót</a>
-        {% endif %}
+    <div class="welcome-card">
+        <h1>Panel IoT</h1>
+        <p>Witaj w systemie rozproszonych pomiarów laboratoryjnych.</p>
+        <a href="/dashboard" class="btn-enter">Otwórz Wykresy Live</a>
     </div>
 
 </body>

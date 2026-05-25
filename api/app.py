@@ -5,11 +5,21 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html", measurement=None)
+    # Po prostu renderujemy pusty szablon GUI. 
+    # Całą resztę roboty z pobieraniem danych zrobi JavaScript.
+    return render_template("index.html")
+
+# @app.route("/", methods=["GET"])
+# def home():
+#     return render_template("index.html", measurement=None)
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    # Podstrona z automatycznie odświeżanym wykresem i historią
+    return render_template("dashboard.html")
 
 @app.route("/health", methods=["GET"])
 def health():
-    
     return jsonify({"status": "ok"})
 
 @app.route("/measurements/last", methods=["GET"])
@@ -48,7 +58,6 @@ def get_last_measurement():
 
     except Exception as e:
         return f"Błąd bazy danych: {str(e)}", 500
-
 
 @app.route("/measurements", methods=["GET"])
 def get_measurements():
