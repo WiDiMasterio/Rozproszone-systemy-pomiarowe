@@ -1,4 +1,6 @@
 1) obsługa czujnika
 2) UUID generowanie
 3) synchronizacja czasu moze z API/flaska/konkutera a nie wifi
-4) 
+4) dokumentacja endpointow z flaska
+5) dokumentacja ogolnej idei projektu/duże readme
+6) MQTT dla komunikatów błędów

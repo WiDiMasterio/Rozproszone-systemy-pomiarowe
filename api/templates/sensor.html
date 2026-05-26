@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Analiza Czujnika LIVE z Suwakiem</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background: #f0f2f5; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        .filter-box { display: flex; align-items: center; gap: 15px; }
+        select { padding: 10px 15px; font-size: 14px; border-radius: 6px; border: 1px solid #ccc; width: 100%; max-width: 400px; background: white; cursor: pointer; }
+        .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 10px 18px; font-size: 14px; border-radius: 6px; }
+        .chart-container { position: relative; width: 100%; height: 350px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .counter-badge { background: #007BFF; color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; margin-left: 10px; }
+        .live-badge { background: #28a745; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 10px; display: none; }
+        
+        .slider-section { background: #f8f9fa; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .slider-container { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+        input[type="range"] { flex-grow: 1; height: 10px; border-radius: 5px; cursor: pointer; background: #cbd5e1; }
+        .slider-labels { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h2 style="margin:0;">Analiza dedykowanego czujnika (Tryb LIVE)</h2>
+            <small style="color: #666;">Wykres odświeża się automatycznie w tle co 3 sekundy</small>
+        </div>
+        <a href="/" class="btn-back">← Menu Główne</a>
+    </div>
+
+    <div class="card">
+        <div class="filter-box">
+            <label for="descriptionPicker"><strong>Wybierz opis czujnika:</strong></label>
+            <select id="descriptionPicker" onchange="initSensorStream()">
+                <option value="">-- Wybierz lokalizację/czujnik --</option>
+                {% for desc in descriptions %}
+                    <option value="{{ desc }}">{{ desc }}</option>
+                {% endfor %}
+            </select>
+            <span id="liveIndicator" class="live-badge">● LIVE SYNC</span>
+        </div>
+
+        <div class="slider-section">
+            <div><strong>Zakres wyświetlania danych na wykresie:</strong></div>
+            <div class="slider-container">
+                <span style="font-size: 14px; font-weight: bold; color: #4a5568;">Pokazuj ostatnich pomiarów:</span>
+                <input type="range" id="pointsSlider" min="5" max="100" value="50" oninput="filterDataBySlider()">
+                <span id="sliderValue" class="counter-badge" style="background: #28a745;">50</span>
+            </div>
+            <div class="slider-labels">
+                <span>Minimalny zakres (5)</span>
+                <span>Maksymalny dostępny zakres</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="dataSection" style="display: none;">
+        <div class="card">
+            <h3>Wykres historyczny zmian wartości</h3>
+            <div class="chart-container">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <h3>Wpisy widoczne w wybranym zakresie</h3>
+                <div>Łącznie w bazie dla tego czujnika: <span id="recordCounter" class="counter-badge">0</span></div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>msgIdx</th>
+                        <th>Urządzenie (Hardware UUID)</th>
+                        <th>Wartość</th>
+                        <th>Jednostka</th>
+                        <th>Czas odebrania (ts_ms)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chartInstance = null;
+    let allFetchedData = []; // Główny bufor danych
+    let liveInterval = null;  // Identyfikator interwału odświeżania
+
+    // Funkcja wywoływana JEDNORAZOWO przy zmianie czujnika w menu rozwijanym
+    function initSensorStream() {
+        // Czyścimy poprzedni interwał, jeśli istniał
+        if (liveInterval) {
+            clearInterval(liveInterval);
+        }
+
+        const selectedDescription = document.getElementById('descriptionPicker').value;
+        const dataSection = document.getElementById('dataSection');
+        const liveIndicator = document.getElementById('liveIndicator');
+
+        if (!selectedDescription) {
+            dataSection.style.display = 'none';
+            liveIndicator.style.display = 'none';
+            return;
+        }
+
+        // Pierwsze pobranie danych (natychmiastowe), resetujące suwak pod nowy czujnik
+        fetchDataFromServer(true);
+
+        // Uruchomienie automatycznego cyklu pobierania danych co 3 sekundy (3000 ms)
+        liveInterval = setInterval(() => {
+            fetchDataFromServer(false);
+        }, 3000);
+    }
+
+    // Główna funkcja pobierająca dane z API
+    async function fetchDataFromServer(isFirstLoad) {
+        const selectedDescription = document.getElementById('descriptionPicker').value;
+        const dataSection = document.getElementById('dataSection');
+        const liveIndicator = document.getElementById('liveIndicator');
+
+        if (!selectedDescription) return;
+
+        try {
+            const response = await fetch(`/measurements?description=${encodeURIComponent(selectedDescription)}`);
+            allFetchedData = await response.json();
+
+            if (allFetchedData.length === 0) {
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="5" style="text-align:center;">Brak danych</td></tr>`;
+                dataSection.style.display = 'block';
+                liveIndicator.style.display = 'none';
+                return;
+            }
+
+            liveIndicator.style.display = 'inline-block';
+            
+            const slider = document.getElementById('pointsSlider');
+            const oldSliderValue = parseInt(slider.value);
+            
+            // Dynamicznie rozszerzamy maksymalny zakres suwaka o nowe rekordy
+            slider.max = allFetchedData.length;
+            
+            if (isFirstLoad) {
+                // Przy pierwszym załadowaniu nowego czujnika ustawiamy domyślny podgląd (np. 50 punktów)
+                slider.value = Math.min(50, allFetchedData.length);
+            } else {
+                // Przy kolejnych automatycznych odświeżeniach zachowujemy pozycję suwaka użytkownika
+                slider.value = oldSliderValue;
+            }
+            
+            document.getElementById('recordCounter').innerText = allFetchedData.length;
+            dataSection.style.display = 'block';
+
+            // Odświeżamy dane na wykresie i w tabeli
+            filterDataBySlider();
+
+        } catch (error) {
+            console.error("Błąd automatycznego odświeżania czujnika:", error);
+        }
+    }
+
+    // Funkcja wycinająca dane z bufora na podstawie suwaka i rysująca wykres
+    function filterDataBySlider() {
+        const slider = document.getElementById('pointsSlider');
+        const count = parseInt(slider.value);
+        
+        document.getElementById('sliderValue').innerText = count;
+
+        // Pobieramy podgrupę najnowszych rekordów
+        const filteredData = allFetchedData.slice(0, count);
+
+        // 1. Aktualizacja Tabeli HTML
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = "";
+        filteredData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>#${row.msgIdx}</td>
+                <td><small style="color:#555;">${row.device_name}</small></td>
+                <td><strong style="color:#007BFF;">${row.value}</strong></td>
+                <td>${row.unit}</td>
+                <td>${row.ts_ms}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // 2. Aktualizacja struktury Chart.js
+        const chartData = [...filteredData].reverse();
+        const labels = chartData.map(item => item.ts_ms);
+        const values = chartData.map(item => item.value);
+
+        if (chartInstance) {
+            chartInstance.data.labels = labels;
+            chartInstance.data.datasets[0].data = values;
+            // 'none' blokuje animacje przejścia, co zapobiega miganiu wykresu podczas automatycznego update'u
+            chartInstance.update('none'); 
+        } else {
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Wskazania w czasie rzeczywistym',
+                        data: values,
+                        borderColor: '#007BFF',
+                        backgroundColor: 'rgba(0, 123, 255, 0.05)',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { display: true },
+                        y: { display: true }
+                    }
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

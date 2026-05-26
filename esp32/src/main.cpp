@@ -109,8 +109,6 @@ void connectMQTT()
   }
 }
 
-
-
 void publishSensorMeasurement(struct messages &msg)
 {
   StaticJsonDocument<256> message;
@@ -136,6 +134,7 @@ void publishSensorMeasurement(struct messages &msg)
   Serial.println(topic);
   Serial.println(payload);
 }
+
 void setup()
 {
   Serial.begin(115200);

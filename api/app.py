@@ -22,6 +22,67 @@ def dashboard():
 def health():
     return jsonify({"status": "ok"})
 
+@app.route("/sensor", methods=["GET"])
+def sensor_view():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        # Wyciągamy UNIKALNE opisy (description) z bazy danych
+        cur.execute("SELECT DISTINCT description FROM measurements WHERE description IS NOT NULL AND description != '';")
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        # Tworzymy listę czystych opisów
+        descriptions = [row[0] for row in rows]
+        
+        return render_template("sensor.html", descriptions=descriptions)
+    except Exception as e:
+        return f"Błąd bazy danych przy pobieraniu opisów: {str(e)}", 500
+
+@app.route("/measurements", methods=["GET"])
+def get_measurements():
+    # Pobieramy parametr description z adresu URL (np. /measurements?description=Temperatura)
+    chosen_description = request.args.get("description")
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Bazowe zapytanie SQL
+    query = """
+        SELECT ts_ms, device_name, description, value, unit, msgIdx
+        FROM measurements
+        WHERE 1=1
+    """
+    params = []
+    
+    if chosen_description:
+        # Filtrowanie po opisie
+        query += " AND description = %s"
+        params.append(chosen_description)
+        # JEŚLI filtrujemy konkretny czujnik -> chcemy CAŁĄ historię (brak LIMIT)
+        query += " ORDER BY id DESC"
+    else:
+        # JEŚLI to ogólny dashboard -> bierzemy tylko 20 ostatnich pomiarów, żeby nie zamulić przeglądarki
+        query += " ORDER BY id DESC LIMIT 20"
+    
+    cur.execute(query, params)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    result = []
+    for row in rows:
+        result.append({
+            "ts_ms": row[0],
+            "device_name": row[1],
+            "description": row[2],
+            "value": row[3],
+            "unit": row[4],
+            "msgIdx": row[5],
+        })
+    return jsonify(result)
+
 @app.route("/measurements/last", methods=["GET"])
 def get_last_measurement():
     try:
@@ -59,31 +120,6 @@ def get_last_measurement():
     except Exception as e:
         return f"Błąd bazy danych: {str(e)}", 500
 
-@app.route("/measurements", methods=["GET"])
-def get_measurements():
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT ts_ms, device_name, description, value, unit, msgIdx
-        FROM measurements
-        ORDER BY id DESC
-        LIMIT 20
-    """)
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    result = []
-
-    for row in rows:
-        result.append({
-            "ts_ms": row[0],
-            "device_name": row[1],
-            "description": row[2],
-            "value": row[3],
-            "unit": row[4],
-            "msgIdx": row[5],
-    })
-    return jsonify(result)
 
 @app.route("/measurements/latest", methods=["GET"])
 def get_latestMeasurements():

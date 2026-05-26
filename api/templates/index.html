@@ -2,22 +2,38 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>System Pomiarowy IoT</title>
+    <title>System Pomiarowy IoT - Menu</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .welcome-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
-        h1 { color: #333; margin-bottom: 10px; }
-        p { color: #666; margin-bottom: 30px; }
-        .btn-enter { background: #007BFF; color: white; text-decoration: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; display: inline-block; }
-        .btn-enter:hover { background: #0056b3; }
+        .menu-container { text-align: center; max-width: 800px; width: 100%; padding: 20px; }
+        h1 { color: #333; margin-bottom: 10px; font-size: 2.5rem; }
+        p { color: #666; margin-bottom: 40px; font-size: 1.1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; text-decoration: none; color: inherit; display: block; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .card h2 { margin-top: 0; color: #007BFF; }
+        .card-sensor h2 { color: #28a745; }
+        .card p { font-size: 14px; margin-bottom: 0; }
     </style>
 </head>
 <body>
 
-    <div class="welcome-card">
-        <h1>Panel IoT</h1>
-        <p>Witaj w systemie rozproszonych pomiarów laboratoryjnych.</p>
-        <a href="/dashboard" class="btn-enter">Otwórz Wykresy Live</a>
+    <div class="menu-container">
+        <h1>Rozproszone systemy pomiarowe</h1>
+        <p>Wybierz tryb wizualizacji danych zebranych z brokerów MQTT</p>
+        
+        <div class="grid">
+            <a href="/dashboard" class="card">
+                <h2>Wszystkie Pomiary Live</h2>
+                <p>Podgląd strumienia danych w czasie rzeczywistym ze wszystkich aktywnych urządzeń IoT.</p>
+            </a>
+
+            <a href="/sensor" class="card card-sensor">
+                <h2>Analiza Jednego Czujnika</h2>
+                <p>Wybierz konkretny identyfikator urządzenia (UUID), aby przeanalizować jego historyczne trendy i logi.</p>
+            </a>
+        </div>
     </div>
 
 </body>
